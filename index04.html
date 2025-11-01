@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>祝福XXX</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background-color: #f0f8ff;
+            font-family: KaiTi, "楷体", serif;
+            text-align: center;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            padding: 20px;
+            position: relative;
+        }
+        
+        .header {
+            margin-bottom: 40px;
+            padding: 20px;
+            z-index: 10;
+        }
+        
+        h1 {
+            color: #e91e63;
+            font-size: 28px;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .buttons {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .btn {
+            background-color: #e91e63;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 30px;
+            font-size: 18px;
+            cursor: pointer;
+            font-family: KaiTi, "楷体", serif;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn:hover {
+            transform: scale(1.05);
+            opacity: 0.9;
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .blessing-popup {
+            position: fixed;
+            width: 220px;
+            height: 100px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            animation: popupAnimation 0.5s ease forwards;
+            color: white;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            padding: 10px;
+            cursor: pointer;
+            opacity: 0.9;
+            z-index: 100;
+            overflow: hidden;
+        }
+        
+        .blessing-popup::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 25%;
+            background-color: rgba(0, 0, 0, 0.1);
+        }
+        
+        .blessing-popup:hover {
+            opacity: 1;
+            transform: scale(1.05);
+            z-index: 200;
+        }
+        
+        @keyframes popupAnimation {
+            0% {
+                transform: translateY(20px) scale(0);
+                opacity: 0;
+            }
+            100% {
+                transform: translateY(0) scale(1);
+                opacity: 0.9;
+            }
+        }
+        
+        .footer {
+            position: absolute;
+            bottom: 20px;
+            color: #999;
+            font-size: 14px;
+            z-index: 10;
+        }
+        
+        .decoration {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        .heart {
+            position: absolute;
+            animation: float 8s linear infinite;
+            opacity: 0.1;
+        }
+        
+        .heart::before, .heart::after {
+            content: "";
+            position: absolute;
+            width: 10px;
+            height: 16px;
+            background: #ffb6c1;
+            border-radius: 50px 50px 0 0;
+            transform: rotate(-45deg);
+            transform-origin: 0 100%;
+        }
+        
+        .heart::after {
+            left: 0;
+            transform: rotate(45deg);
+            transform-origin: 100% 100%;
+        }
+        
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+            }
+            100% {
+                transform: translateY(-100px) rotate(360deg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="decoration" id="decoration"></div>
+    
+    <div class="header">
+        <h1>点击开始接收祝福吧！</h1>
+        <div class="buttons">
+            <button id="startBtn" class="btn">开启祝福</button>
+            <button id="closeBtn" class="btn">关闭所有</button>
+        </div>
+    </div>
+    
+    <div class="footer">
+        用心传递每一份祝福  💖
+    </div>
+    
+    <script>
+        // 祝福语数组
+        const blessings = [
+            "愿你心想事成",
+            "幸福常伴左右",
+            "生活充满阳光",
+            "梦想照进现实",
+            "开心每一天",
+            "万事顺遂如意",
+            "前程似锦",
+            "健康平安",
+            "快乐永驻",
+            "笑口常开",
+            "好运连连",
+            "友谊长存",
+            "爱情甜蜜",
+            "事业有成",
+            "梦想成真",
+            "心想事成",
+            "平安喜乐",
+            "顺心如意",
+            "天天开心",
+            "阖家幸福",
+            "幸福安康",
+            "好运常伴",
+            "万事顺意",
+            "心想事成",
+            "生活美满",
+            "笑容灿烂",
+            "心情愉快",
+            "一切皆顺",
+            "无忧无虑",
+            "快乐无边",
+            "幸福满满",
+            "春暖花开",
+            "秋收冬藏",
+            "四季平安",
+            "五福临门",
+            "十全十美"
+        ];
+        
+        // 弹窗颜色数组
+        const colors = [
+            "#ffc0cb", "#ffb6c1", "#ff69b4", "#ff1493", "#db7093", 
+            "#bc8f8f", "#c71585", "#ffa07a", "#ff7f50", "#ffa500",
+            "#ffffe0", "#e6e6fa", "#d8bfd8", "#dda0dd", "#ee82ee"
+        ];
+        
+        // 获取DOM元素
+        const startBtn = document.getElementById('startBtn');
+        const closeBtn = document.getElementById('closeBtn');
+        const decoration = document.getElementById('decoration');
+        const body = document.body;
+        
+        // 创建装饰性爱心
+        function createHearts() {
+            for (let i = 0; i < 30; i++) {
+                const heart = document.createElement('div');
+                heart.classList.add('heart');
+                heart.style.left = `${Math.random() * 100}%`;
+                heart.style.top = `${Math.random() * 100}%`;
+                heart.style.width = `${10 + Math.random() * 30}px`;
+                heart.style.height = `${10 + Math.random() * 30}px`;
+                heart.style.animationDelay = `${Math.random() * 5}s`;
+                heart.style.opacity = `${0.1 + Math.random() * 0.1}`;
+                decoration.appendChild(heart);
+            }
+        }
+        
+        // 创建祝福弹窗
+        function createBlessingPopup() {
+            const popup = document.createElement('div');
+            popup.classList.add('blessing-popup');
+            
+            // 随机内容与颜色
+            const text = blessings[Math.floor(Math.random() * blessings.length)];
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            popup.style.backgroundColor = color;
+            popup.textContent = text;
+            
+            // 随机位置
+            const maxX = window.innerWidth - 220;
+            const maxY = window.innerHeight - 100;
+            popup.style.left = `${Math.max(0, Math.random() * maxX)}px`;
+            popup.style.top = `${Math.max(0, Math.random() * maxY)}px`;
+            
+            // 添加到页面
+            document.body.appendChild(popup);
+            
+            // 点击关闭单个弹窗
+            popup.addEventListener('click', function() {
+                document.body.removeChild(popup);
+            });
+            
+            return popup;
+        }
+        
+        // 开始祝福动画
+        function startBlessings() {
+            startBtn.disabled = true;
+            startBtn.textContent = "祝福发送中...";
+            
+            let count = 0;
+            const maxCount = 100;
+            const interval = setInterval(() => {
+                createBlessingPopup();
+                count++;
+                
+                if (count >= maxCount) {
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        startBtn.disabled = false;
+                        startBtn.textContent = "开启祝福";
+                    }, 5000);
+                }
+            }, 50);
+        }
+        
+        // 关闭所有弹窗
+        function closeAllPopups() {
+            const popups = document.querySelectorAll('.blessing-popup');
+            popups.forEach(popup => {
+                popup.style.transition = 'all 0.5s ease';
+                popup.style.opacity = '0';
+                popup.style.transform = 'scale(0)';
+                setTimeout(() => {
+                    if (popup.parentNode) {
+                        popup.parentNode.removeChild(popup);
+                    }
+                }, 500);
+            });
+        }
+        
+        // 添加事件监听
+        startBtn.addEventListener('click', startBlessings);
+        closeBtn.addEventListener('click', closeAllPopups);
+        
+        // 初始化页面
+        createHearts();
+    </script>
+</body>
+</html>
